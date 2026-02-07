@@ -1,14 +1,24 @@
 
-# 🏨 HOTEL BOOKING SYSTEM - Architecture Microservices
+# Hotel Booking System — Plateforme de réservation (microservices)
 
-## 📋 Vue d'Ensemble du Projet
+## Présentation
 
-Ce projet est une **plateforme complète de gestion de réservations d'hôtels** basée sur une architecture microservices moderne, scalable et professionnelle. Le système permet aux clients de rechercher des hôtels, réserver des chambres, laisser des avis, et aux gestionnaires d'administrer leurs établissements.
+Hotel Booking System est une plateforme de gestion de réservation hôtelière conçue selon une **architecture microservices**. Le dépôt fournit un socle technique basé sur Spring Boot / Spring Cloud (Gateway, Eureka, Config Server) et une infrastructure Docker (Kafka, Keycloak) prête à l’emploi.
 
-**Équipe** : 6 étudiants  
-**Architecture** : Microservices  
-**Technologies** : Spring Boot, Spring Cloud, Kafka, Keycloak, React  
-**Base de données** : H2 (développement)
+## Statut du projet (réalité du dépôt)
+
+- **Services implémentés**
+  - `booking_service` (port `8081`)
+  - `chambre` (port `8082`)
+  - `gateway-service` (port `8222`)
+  - `discovery-service` (port `8761`)
+  - `config-service` (port `9999`)
+- **Infrastructure disponible (Docker Compose)**
+  - Kafka + Zookeeper + Kafka UI + Keycloak (`infrastructure/`)
+- **Services prévus / dossiers vides**
+  - `analytics_service/`, `review_service/`, `room_service/`, `hotel_service/`, `user_service/`
+
+Certaines parties de ce document décrivent une **architecture cible** (vision). Les points non implémentés sont indiqués comme tels.
 
 ---
 
@@ -17,7 +27,7 @@ Ce projet est une **plateforme complète de gestion de réservations d'hôtels**
 ```
                                     ┌─────────────────┐
                                     │   FRONTEND      │
-                                    │  (React/Vue)    │
+                                    │  (React)        │
                                     │   Port 3000     │
                                     └────────┬────────┘
                                              │
@@ -25,7 +35,7 @@ Ce projet est une **plateforme complète de gestion de réservations d'hôtels**
                           ┌──────────────────────────────────┐
                           │       API GATEWAY                │
                           │   (Routage + Load Balance)       │
-                          │         Port 8888                │
+                          │         Port 8222                │
                           └──────────────┬───────────────────┘
                                          │
                     ┌────────────────────┼────────────────────┐
@@ -41,17 +51,11 @@ Ce projet est une **plateforme complète de gestion de réservations d'hôtels**
     ────────────────────────────────────────────────────────────────────────
          │                    │                    │
 ┌────────▼──────────┐  ┌──────▼───────────┐  ┌───▼──────────────┐
-│ BOOKING SERVICE   │  │  USER SERVICE    │  │  HOTEL SERVICE   │
-│    Port 8081      │  │   Port 8084      │  │    Port 8083     │
-│      H2 DB1       │  │     H2 DB2       │  │      H2 DB3      │
+│ BOOKING SERVICE   │  │ CHAMBRE SERVICE  │  │ AUTRES SERVICES  │
+│    Port 8081      │  │   Port 8082      │  │ (à implémenter)  │
+│       H2          │  │   H2 (file)      │  │                  │
 └───────────────────┘  └──────────────────┘  └──────────────────┘
-         │                    │                    │
-┌────────▼──────────┐  ┌──────▼───────────┐  ┌───▼──────────────┐
-│  ROOM SERVICE     │  │ REVIEW SERVICE   │  │ ANALYTICS SERVICE│
-│    Port 8082      │  │   Port 8085      │  │    Port 8086     │
-│      H2 DB4       │  │     H2 DB5       │  │      H2 DB6      │
-└───────────────────┘  └──────────────────┘  └──────────────────┘
-```
+ ```
 
 ---
 
@@ -311,7 +315,7 @@ eureka.client.service-url.defaultZone=http://localhost:8761/eureka/
 
 ---
 
-### 8️⃣ **API Gateway** (Port 8888) 🚪
+### 8️⃣ **API Gateway** (Port 8222) 🚪
 **Rôle** : Point d'entrée unique pour tous les appels API
 
 **Responsable** : Partagé (1 personne configure)
@@ -319,24 +323,20 @@ eureka.client.service-url.defaultZone=http://localhost:8761/eureka/
 **Fonction** :
 - Routage intelligent vers les microservices
 - Load balancing
-- Rate limiting
-- Authentification centralisée
+- Rate limiting (à implémenter / configurer)
+- Authentification centralisée (à intégrer côté code)
 - CORS
 
-**Routes** :
+**Routes (dépôt actuel)** :
 ```yaml
-/api/bookings/**    → booking-service:8081
-/api/users/**       → user-service:8084
-/api/hotels/**      → hotel-service:8083
-/api/rooms/**       → room-service:8082
-/api/reviews/**     → review-service:8085
-/api/analytics/**   → analytics-service:8086
+/bookings/**  → lb://BOOKING
+/chambres/**  → lb://CHAMBRE
 ```
 
-**Accès Frontend** :
+**Exemples** :
 ```
-http://localhost:8888/api/bookings
-http://localhost:8888/api/hotels
+http://localhost:8222/bookings
+http://localhost:8222/chambres
 ```
 
 ---
@@ -409,29 +409,29 @@ Analytics (Consumer) → Enregistre statistiques
 
 ---
 
-## 🗂️ Structure des Repositories
+## 🗂️ Structure du dépôt
 
 ```
 HOTEL-BOOKING-SYSTEM/
 │
-├── 📂 booking_service/         (Port 8081) - Vous
-├── 📂 user_service/            (Port 8084) - Étudiant 2
-├── 📂 hotel_service/           (Port 8083) - Étudiant 3
-├── 📂 room_service/            (Port 8082) - Étudiant 4
-├── 📂 review_service/          (Port 8085) - Étudiant 5
-├── 📂 analytics_service/       (Port 8086) - Étudiant 6
+├── 📂 booking_service/         (Port 8081) - Implémenté
+├── 📂 chambre/                 (Port 8082) - Implémenté
+├── 📂 analytics_service/       (vide / à implémenter)
+├── 📂 review_service/          (vide / à implémenter)
+├── 📂 room_service/            (vide / à implémenter)
+├── 📂 hotel_service/           (vide / à implémenter)
+├── 📂 user_service/            (vide / à implémenter)
 │
-├── 📂 eureka_server/           (Port 8761) - Partagé
-├── 📂 api_gateway/             (Port 8888) - Partagé
+├── 📂 discovery-service/       (Port 8761) - Eureka
+├── 📂 gateway-service/         (Port 8222) - Spring Cloud Gateway
+├── 📂 config-service/          (Port 9999) - Config Server
+├── 📂 configurations/          (fichiers de config centralisés)
 ├── 📂 frontend/                (Port 3000) - Partagé
 │
 └── 📂 infrastructure/
     ├── docker-compose.yml      ← Keycloak, Kafka, Zookeeper
     ├── keycloak-config/
-    ├── postman/
-    │   ├── Hotel-Booking-System.postman_collection.json
-    │   └── Local-Environment.postman_environment.json
-    └── README.md
+    └── README-INFRASTRUCTURE.md
 ```
 
 ---
@@ -498,9 +498,7 @@ public void handleBookingCreated(BookingCreatedEvent event) {
 cd infrastructure
 docker-compose up -d
 
-# Attendre 60 secondes pour Keycloak
-docker logs keycloak -f
-# Attendre "Listening on: http://0.0.0.0:8080"
+# Référence: infrastructure/README-INFRASTRUCTURE.md
 ```
 
 ### Étape 2 : Configuration Keycloak (1 fois)
@@ -515,18 +513,15 @@ docker logs keycloak -f
 ### Étape 3 : Démarrer Eureka Server
 
 ```powershell
-cd eureka_server
+cd discovery-service
 mvn spring-boot:run
-# Attendre "Started Eureka Server"
-# Dashboard : http://localhost:8761
 ```
 
 ### Étape 4 : Démarrer API Gateway
 
 ```powershell
-cd api_gateway
+cd gateway-service
 mvn spring-boot:run
-# Attendre "Started API Gateway"
 ```
 
 ### Étape 5 : Démarrer les Microservices (en parallèle)
@@ -534,36 +529,12 @@ mvn spring-boot:run
 **Terminal 1 - Booking Service**
 ```powershell
 cd booking_service
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-```
-
-**Terminal 2 - User Service**
-```powershell
-cd user_service
 mvn spring-boot:run
 ```
 
-**Terminal 3 - Hotel Service**
+**Terminal 2 - Chambre Service**
 ```powershell
-cd hotel_service
-mvn spring-boot:run
-```
-
-**Terminal 4 - Room Service**
-```powershell
-cd room_service
-mvn spring-boot:run
-```
-
-**Terminal 5 - Review Service**
-```powershell
-cd review_service
-mvn spring-boot:run
-```
-
-**Terminal 6 - Analytics Service**
-```powershell
-cd analytics_service
+cd chambre
 mvn spring-boot:run
 ```
 
@@ -576,31 +547,29 @@ npm start
 # Ouvrir http://localhost:3000
 ```
 
+Remarque : le dossier `frontend/` est actuellement vide dans ce dépôt. Cette étape correspond à la **vision cible** et sera activable une fois le frontend ajouté.
+
 ### ✅ Vérification
 
 ```
 ✅ Eureka        : http://localhost:8761 (voir tous les services enregistrés)
-✅ API Gateway   : http://localhost:8888/actuator/health
+✅ API Gateway   : http://localhost:8222/actuator/health
 ✅ Keycloak      : http://localhost:8080
-✅ Frontend      : http://localhost:3000
+✅ Kafka UI      : http://localhost:8090
 ✅ Booking       : http://localhost:8081/actuator/health
-✅ User          : http://localhost:8084/actuator/health
-✅ Hotel         : http://localhost:8083/actuator/health
-✅ Room          : http://localhost:8082/actuator/health
-✅ Review        : http://localhost:8085/actuator/health
-✅ Analytics     : http://localhost:8086/actuator/health
+✅ Chambre       : http://localhost:8082
 ```
 
 ---
 
 ## 🧪 Tests avec Postman
 
-### 1. Importer la Collection
+### 1. Préparer les requêtes
 
-```
-infrastructure/postman/Hotel-Booking-System.postman_collection.json
-infrastructure/postman/Local-Environment.postman_environment.json
-```
+Le dépôt ne contient pas de collection Postman versionnée pour le moment. Tu peux :
+
+- utiliser les exemples d’API dans `booking_service/README.md`
+- appeler les endpoints via Gateway (`http://localhost:8222/...`) ou directement sur les ports de service
 
 ### 2. Obtenir un Token JWT
 
@@ -614,62 +583,25 @@ Body (x-www-form-urlencoded):
 - grant_type: password
 ```
 
+Remarque : Keycloak est démarrable via Docker, mais la protection des endpoints côté microservices (Spring Security OAuth2 Resource Server) est à **intégrer**.
+
 ### 3. Scénario de Test Complet
 
-#### Test 1 : Créer un Hôtel
+#### Exemple : Créer une réservation (Booking)
 ```
-POST http://localhost:8888/api/hotels
-Authorization: Bearer {token}
-
-{
-  "name": "Grand Hotel Paris",
-  "city": "Paris",
-  "rating": 5,
-  "pricePerNight": 150.00
-}
+POST http://localhost:8222/bookings/api/bookings
 ```
 
-#### Test 2 : Créer une Chambre
-```
-POST http://localhost:8888/api/rooms
+Note : selon la configuration des routes, tu peux aussi appeler les services directement :
 
-{
-  "roomNumber": "101",
-  "roomType": "DELUXE",
-  "hotelId": 1,
-  "pricePerNight": 150.00,
-  "capacity": 2
-}
+```
+POST http://localhost:8081/api/bookings
 ```
 
-#### Test 3 : Créer une Réservation
-```
-POST http://localhost:8888/api/bookings
+Pour le service chambre (contrôleur actuel), un exemple via Gateway est :
 
-{
-  "roomId": 1,
-  "userId": "user-123",
-  "checkInDate": "2026-03-01",
-  "checkOutDate": "2026-03-05",
-  "numberOfGuests": 2
-}
 ```
-
-#### Test 4 : Laisser un Avis
-```
-POST http://localhost:8888/api/reviews
-
-{
-  "hotelId": 1,
-  "bookingId": 1,
-  "rating": 5,
-  "comment": "Excellent séjour!"
-}
-```
-
-#### Test 5 : Voir les Statistiques
-```
-GET http://localhost:8888/api/analytics/bookings/stats
+GET http://localhost:8222/chambres/hello
 ```
 
 ---
@@ -846,12 +778,12 @@ Ce projet permet d'apprendre :
 
 ---
 
-## 📖 Documentation Additionnelle
+## Documentation
 
-- 📂 [Booking Service README](booking_service/README.md)
-- 📂 [API Gateway Configuration](api_gateway/README.md)
-- 📂 [Infrastructure Setup](infrastructure/README.md)
-- 📂 [Frontend Documentation](frontend/README.md)
+- `booking_service/README.md`
+- `infrastructure/README-INFRASTRUCTURE.md`
+- `ANALYSE-INTEGRATION.md`
+- `PLAN-ACTION.md`
 
 ---
 

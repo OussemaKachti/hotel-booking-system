@@ -5,8 +5,11 @@ import com.hotel.booking.dto.BookingResponse;
 import com.hotel.booking.dto.BookingUpdateRequest;
 import com.hotel.booking.entity.Booking;
 import com.hotel.booking.entity.BookingStatus;
+import com.hotel.booking.event.BookingCancelledEvent;
+import com.hotel.booking.event.BookingCreatedEvent;
 import com.hotel.booking.exception.BookingNotFoundException;
 import com.hotel.booking.exception.InvalidBookingException;
+import com.hotel.booking.kafka.BookingEventProducer;
 import com.hotel.booking.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
@@ -26,6 +30,7 @@ import java.util.stream.Collectors;
 public class BookingService {
 
     private final BookingRepository bookingRepository;
+    private final BookingEventProducer eventProducer;
 
     /**
      * Créer une nouvelle réservation
@@ -61,6 +66,9 @@ public class BookingService {
         // Sauvegarder
         Booking savedBooking = bookingRepository.save(booking);
         log.info("Booking created successfully with confirmation number: {}", savedBooking.getConfirmationNumber());
+
+        // Publier l'événement Kafka
+        publishBookingCreatedEvent(savedBooking);
 
         return mapToResponse(savedBooking);
     }
@@ -189,6 +197,9 @@ public class BookingService {
         Booking cancelledBooking = bookingRepository.save(booking);
         log.info("Booking cancelled successfully: {}", id);
 
+        // Publier l'événement Kafka
+        publishBookingCancelledEvent(cancelledBooking);
+
         return mapToResponse(cancelledBooking);
     }
 
@@ -242,6 +253,54 @@ public class BookingService {
      */
     private String generateConfirmationNumber() {
         return "BK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    }
+
+    /**
+     * Publier un événement de création de réservation vers Kafka
+     */
+    private void publishBookingCreatedEvent(Booking booking) {
+        try {
+            BookingCreatedEvent event = BookingCreatedEvent.builder()
+                    .bookingId(booking.getId())
+                    .userId(booking.getUserId() != null ? Long.parseLong(booking.getUserId()) : null)
+                    .roomId(booking.getRoomId())
+                    .hotelId(booking.getHotelId())
+                    .checkInDate(booking.getCheckInDate())
+                    .checkOutDate(booking.getCheckOutDate())
+                    .numberOfGuests(booking.getNumberOfGuests())
+                    .totalPrice(booking.getTotalPrice())
+                    .status(booking.getStatus().name())
+                    .eventTimestamp(LocalDateTime.now())
+                    .build();
+
+            eventProducer.publishBookingCreated(event);
+        } catch (Exception e) {
+            log.error("Failed to publish BookingCreatedEvent: {}", e.getMessage());
+            // Ne pas propager l'exception pour ne pas impacter la transaction
+        }
+    }
+
+    /**
+     * Publier un événement d'annulation de réservation vers Kafka
+     */
+    private void publishBookingCancelledEvent(Booking booking) {
+        try {
+            BookingCancelledEvent event = BookingCancelledEvent.builder()
+                    .bookingId(booking.getId())
+                    .userId(booking.getUserId() != null ? Long.parseLong(booking.getUserId()) : null)
+                    .roomId(booking.getRoomId())
+                    .hotelId(booking.getHotelId())
+                    .checkInDate(booking.getCheckInDate())
+                    .checkOutDate(booking.getCheckOutDate())
+                    .status(booking.getStatus().name())
+                    .eventTimestamp(LocalDateTime.now())
+                    .build();
+
+            eventProducer.publishBookingCancelled(event);
+        } catch (Exception e) {
+            log.error("Failed to publish BookingCancelledEvent: {}", e.getMessage());
+            // Ne pas propager l'exception pour ne pas impacter la transaction
+        }
     }
 
     /**
