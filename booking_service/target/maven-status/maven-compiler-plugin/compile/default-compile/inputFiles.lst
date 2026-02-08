@@ -3,13 +3,16 @@ C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\bo
 C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\booking\exception\InvalidBookingException.java
 C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\booking\event\BookingCreatedEvent.java
 C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\booking\repository\BookingRepository.java
+C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\booking\kafka\exception\KafkaPublishException.java
 C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\booking\entity\Booking.java
 C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\booking\exception\GlobalExceptionHandler.java
 C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\booking\exception\ErrorResponse.java
+C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\booking\kafka\config\KafkaProducerConfig.java
 C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\booking\BookingServiceApplication.java
 C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\booking\kafka\KafkaTopicConfig.java
 C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\booking\event\BookingCompletedEvent.java
 C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\booking\entity\BookingStatus.java
+C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\booking\kafka\model\DlqMessage.java
 C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\booking\dto\BookingUpdateRequest.java
 C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\booking\exception\BookingNotFoundException.java
 C:\Users\Oussema\hotel-booking-system\booking_service\src\main\java\com\hotel\booking\event\BookingCancelledEvent.java

@@ -1,0 +1,10 @@
+﻿{
+  "userId": 101,
+  "roomId": 202,
+  "hotelId": 303,
+  "checkInDate": "2026-02-15",
+  "checkOutDate": "2026-02-18",
+  "numberOfGuests": 2,
+  "pricePerNight": 150.00,
+  "totalPrice": 450.00
+}
